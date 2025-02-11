@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
 interface IProduct extends Document {
     _id: mongoose.Types.ObjectId;
@@ -49,8 +49,8 @@ const ProductSchema: Schema = new Schema<IProduct>({
         index: true,
         required: [true, "Product category is required"],
         enum: {
-            values: ['electronics', 'fashion', 'home', 'beauty', 'sports', 'other'],
-            message: '{VALUE} is not a valid category'
+            values: ["electronics", "fashion", "home", "beauty", "sports", "other"],
+            message: "{VALUE} is not a valid category"
         }
     },
     quantity: { 
@@ -61,7 +61,7 @@ const ProductSchema: Schema = new Schema<IProduct>({
     },
     createdBy: { 
         type: Schema.Types.ObjectId, 
-        ref: 'User', 
+        ref: "User", 
         required: [true, "Admin information is required"],
     },
     isActive: { 
@@ -73,4 +73,4 @@ const ProductSchema: Schema = new Schema<IProduct>({
 });
 
 ProductSchema.index({ category: 1, price: -1 });
-export default mongoose.model<IProduct>('Product', ProductSchema);
+export default mongoose.model<IProduct>("Product", ProductSchema);
