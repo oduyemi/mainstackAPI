@@ -1,9 +1,9 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-interface IProduct extends Document {
+export interface IProduct extends Document {
     _id: mongoose.Types.ObjectId;
     name: string;
-    description?: string;
+    desc?: string;
     img: string;
     price: number;
     category: string;
@@ -22,7 +22,7 @@ const ProductSchema: Schema = new Schema<IProduct>({
         trim: true,
         minlength: [3, "Product name must be at least 3 characters long"]
     },
-    description: { 
+    desc: { 
         type: String,
         trim: true,
         maxlength: [500, "Description can't exceed 500 characters"]

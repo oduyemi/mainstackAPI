@@ -8,6 +8,7 @@ import rateLimit from "express-rate-limit";
 import { db, store } from "./config/index"; 
 import AppError from "./utils/app.error";
 import appRoutes from "./routes/app.route";
+import productRoutes from "./routes/product.route";
 
 
 dotenv.config();
@@ -55,6 +56,7 @@ app.use(rateLimit({
 
 // Routes
 app.use("/api/v1", appRoutes);
+app.use("/api/v1/products", productRoutes);
 
 app.all("*", (req, res, next) => {
   next(new AppError(`The route ${req.originalUrl} with the ${req.method} method does not exist on this server! 💨`, 404));
