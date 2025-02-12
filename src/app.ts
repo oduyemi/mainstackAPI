@@ -58,7 +58,7 @@ app.use(rateLimit({
 
 // Routes
 app.use("/api/v1", appRoutes);
-app.use("/api/v1", authRoutes);
+app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/users", userRoutes);
 
