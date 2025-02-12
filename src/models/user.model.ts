@@ -1,7 +1,5 @@
 import mongoose, { Document } from "mongoose";
 
-
-
 export interface IUser extends Document {
   _id: mongoose.Types.ObjectId;
   fname: string;
@@ -10,7 +8,7 @@ export interface IUser extends Document {
   phone: string;
   password: string;
   role: "admin" | "user";
-  isActive: boolean;
+  isActive: boolean; 
   createdAt: Date;
   updatedAt: Date;
 }
@@ -41,7 +39,7 @@ const userSchema = new mongoose.Schema(
       required: [true, "Phone number is required"],
       unique: true,
       validate: {
-        validator: (phone: string) => /^\+?\d{1,3}[- ]?\d{3}[- ]?\d{3}[- ]?\d{4}$/.test(phone),
+        validator: (phone: string) => /^\+?[1-9]\d{1,14}$/.test(phone), 
         message: "Invalid phone number format",
       },
     },
@@ -64,11 +62,11 @@ const userSchema = new mongoose.Schema(
     },
     isActive: {
       type: Boolean,
-      default: true 
-    }
+      default: true, 
+    },
   },
   { timestamps: true }
 );
 
-const User = mongoose.model<IUser>("Admin", userSchema);
+const User = mongoose.model<IUser>("User", userSchema);
 export default User;

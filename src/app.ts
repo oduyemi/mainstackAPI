@@ -9,6 +9,7 @@ import { db, store } from "./config/index";
 import AppError from "./utils/app.error";
 import appRoutes from "./routes/app.route";
 import productRoutes from "./routes/product.route";
+import userRoutes from "./routes/user.route";
 
 
 dotenv.config();
@@ -57,6 +58,7 @@ app.use(rateLimit({
 // Routes
 app.use("/api/v1", appRoutes);
 app.use("/api/v1/products", productRoutes);
+app.use("/api/v1/users", userRoutes);
 
 app.all("*", (req, res, next) => {
   next(new AppError(`The route ${req.originalUrl} with the ${req.method} method does not exist on this server! 💨`, 404));
