@@ -181,7 +181,6 @@ export const demoteToUser = async (req: AuthenticatedRequest, res: Response): Pr
 export const deleteUser = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const { userID } = req.params;
-
         // Only superAdmins can deactivate admins
         if (!req.user || (req.user.role !== "superAdmin" && req.user.role !== "admin")) {
             res.status(403).json({ message: "Forbidden: Only superAdmins or admins can deactivate user accounts." });
@@ -198,7 +197,6 @@ export const deleteUser = async (req: AuthenticatedRequest, res: Response): Prom
             res.status(404).json({ message: "User not found or already deactivated." });
             return;
         }
-
         // SuperAdmin can deactivate other admins
         if (req.user.role === "superAdmin" && user.role === "admin") {
             user.isActive = false;
@@ -206,13 +204,11 @@ export const deleteUser = async (req: AuthenticatedRequest, res: Response): Prom
             res.status(200).json({ message: "Admin deactivated successfully." });
             return;
         }
-
         // Admin can only deactivate users
         if (req.user.role === "admin" && user.role === "admin") {
             res.status(403).json({ message: "Admins cannot deactivate other admins." });
             return;
         }
-
         // Deactivate the user
         user.isActive = false;
         await user.save();

@@ -1,5 +1,8 @@
 import mongoose, { Document, Schema, Model } from "mongoose";
 import bcrypt from "bcryptjs";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@_$!%*?&])[A-Za-z\d@_$!%*?&]{8,}$/;
@@ -91,7 +94,7 @@ async function addSuperAdmins() {
       lname: "Cole",
       email: "ykay@gmail.com",
       phone: "+2348166442322", 
-      password: "Jo0s_e3@",
+      password: process.env.YEMI,
       role: "superAdmin",
     },
     {
@@ -99,7 +102,7 @@ async function addSuperAdmins() {
       lname: "Smith",
       email: "oreoluwasmith@gmail.com",
       phone: "+2348133992314",
-      password: "jh0S2i__",
+      password: process.env.OREOLUWA,
       role: "superAdmin",
     },
   ];
