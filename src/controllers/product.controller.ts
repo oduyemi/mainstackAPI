@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Product, { IProduct } from "../models/product.model";
+import { AuthenticatedRequest } from "../middlewares/auth.middleware";
 
 
 // Get All Products with optional filters
@@ -65,61 +66,66 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
 
 
 // New Product
-export const newProduct = [
-    async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { name, desc, img, price, category, quantity, createdBy } = req.body;
-  
-      const existingProduct = await Product.findOne({ name });
-      if (existingProduct) {
-        res.status(409).json({ message: "Product with this name already exists" });
-      }
-  
-      const product = new Product({ name, desc, img, price, category, quantity, createdBy });
-      await product.save();
-  
-      res.status(201).json(product);
-    } catch (error: any) {
-      console.error(error);
-      res.status(400).json({ message: "Error creating product", error });
+export const newProduct = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { name, desc, img, price, category, quantity } = req.body;
+    const existingProduct = await Product.findOne({ name });
+    if (existingProduct) {
+      res.status(409).json({ message: "Product with this name already exists" });
+      return;
     }
-}
-];
+
+    // Create new product
+    const product = new Product({
+      name,
+      desc,
+      img,
+      price,
+      category,
+      quantity,
+      createdBy: req.user?._id, 
+    });
+
+    await product.save();
+    res.status(201).json(product);
+  } catch (error) {
+    console.error("Error creating product:", error);
+    res.status(400).json({ message: "Error creating product", error });
+  }
+};
 
 
-// Update Product
-export const updateProduct = [
-    async (req: Request, res: Response): Promise<void> => {
-    try {
-        const productId = req.params.id;  
-        const updatedProductData: Partial<IProduct> = req.body;
-        const requiredFields = ["name", "desc", "img", "price", "category", "quantity"];
-        const missingFields = requiredFields.filter(
-            field => field in updatedProductData && !updatedProductData[field as keyof IProduct]
-        );
+export const updateProduct = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const productId = req.params.id;
+    const updatedProductData: Partial<IProduct> = req.body;
+    const requiredFields = ["name", "desc", "img", "price", "category", "quantity"];
+    const missingFields = requiredFields.filter(
+      field => field in updatedProductData && !updatedProductData[field as keyof IProduct]
+    );
 
-        if (missingFields.length > 0) {
-            res.status(400).json({ message: `Missing values for: ${missingFields.join(", ")}` });
-        }
-
-        const updatedProduct: IProduct | null = await Product.findByIdAndUpdate(
-            productId,
-            { $set: updatedProductData },
-            { new: true, runValidators: true }
-        );
-
-        if (!updatedProduct) {
-            res.status(404).json({ message: "Product not found!" });
-        }
-
-        res.status(200).json({ data: updatedProduct });
-    } catch (error: any) {
-        console.error("Error updating product:", error);
-        res.status(500).json({ message: "Internal Server Error" });
+    if (missingFields.length > 0) {
+      res.status(400).json({ message: `Missing values for: ${missingFields.join(", ")}` });
+      return; 
     }
-}
-];
 
+    const updatedProduct: IProduct | null = await Product.findByIdAndUpdate(
+      productId,
+      { $set: updatedProductData },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedProduct) {
+      res.status(404).json({ message: "Product not found!" });
+      return;  
+    }
+
+    res.status(200).json({ data: updatedProduct });
+  } catch (error: any) {
+    console.error("Error updating product:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
 // Soft Delete/Deactivate Product
 export const deleteProduct = [

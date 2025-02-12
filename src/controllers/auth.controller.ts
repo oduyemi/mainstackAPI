@@ -26,9 +26,6 @@ declare module "express-session" {
 export {};
 
 
-
-
-
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { fname, lname, email, phone, password, confirmPassword } = req.body;
@@ -48,13 +45,12 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
             return;
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
         const newUser: IUser = new User({ 
             fname, 
             lname, 
             email, 
             phone, 
-            password: hashedPassword,
+            password: password,
             role: "user" 
         }) as IUser;
         await newUser.save();
@@ -71,6 +67,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
             lname: newUser.lname,
             email: newUser.email,
             phone: newUser.phone,
+            role: "user", // default role
             createdAt: newUser.createdAt,
             updatedAt: newUser.updatedAt,
         };
@@ -125,6 +122,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
             lname: user.lname,
             email: user.email,
             phone: user.phone,
+            role: user.role,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
         };

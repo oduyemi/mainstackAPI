@@ -1,4 +1,8 @@
-import mongoose, { Document } from "mongoose";
+import mongoose, { Document, Schema, Model } from "mongoose";
+import bcrypt from "bcryptjs";
+
+
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@_$!%*?&])[A-Za-z\d@_$!%*?&]{8,}$/;
 
 export interface IUser extends Document {
   _id: mongoose.Types.ObjectId;
@@ -7,22 +11,17 @@ export interface IUser extends Document {
   email: string;
   phone: string;
   password: string;
-  role: "admin" | "user";
-  isActive: boolean; 
+  role: "admin" | "superAdmin" | "user";
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
-const userSchema = new mongoose.Schema(
+const userSchema = new Schema<IUser>(
   {
-    fname: {
-      type: String,
-      required: [true, "First name is required"],
-    },
-    lname: {
-      type: String,
-      required: [true, "Last name is required"],
-    },
+    fname: { type: String, required: [true, "First name is required"] },
+    lname: { type: String, required: [true, "Last name is required"] },
     email: {
       type: String,
       unique: true,
@@ -39,7 +38,7 @@ const userSchema = new mongoose.Schema(
       required: [true, "Phone number is required"],
       unique: true,
       validate: {
-        validator: (phone: string) => /^\+?[1-9]\d{1,14}$/.test(phone), 
+        validator: (phone: string) => /^\+?[1-9]\d{1,14}$/.test(phone),
         message: "Invalid phone number format",
       },
     },
@@ -49,24 +48,72 @@ const userSchema = new mongoose.Schema(
       minlength: [8, "Password must be at least 8 characters long"],
       select: false,
       validate: {
-        validator: (password: string) =>
-          /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.*[^\s]).{8,}$/.test(password),
-        message:
-          "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
+        validator: function (value: string) {
+          if (!passwordRegex.test(value)) {
+            throw new mongoose.Error.ValidatorError({
+              message: "Password must contain uppercase, lowercase, number, and special character.",
+              reason: "Password failed complexity requirements",
+            });
+          }
+          return true;
+        },
+        message: "Password validation failed",
       },
     },
     role: { 
       type: String, 
-      enum: ["admin", "user"], 
+      enum: ["admin", "superAdmin", "user"], 
       default: "user" 
     },
-    isActive: {
-      type: Boolean,
-      default: true, 
-    },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
 
-const User = mongoose.model<IUser>("User", userSchema);
+userSchema.pre<IUser>("save", async function (next) {
+  if (this.isModified("password") || this.isNew) {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+  }
+  next();
+});
+
+userSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
+  return bcrypt.compare(candidatePassword, this.password);
+};
+
+const User: Model<IUser> = mongoose.model<IUser>("User", userSchema);
+
+async function addSuperAdmins() {
+  const superAdminUsers = [
+    {
+      fname: "Yemi",
+      lname: "Cole",
+      email: "ykay@gmail.com",
+      phone: "+2348166442322", 
+      password: "Jo0s_e3@",
+      role: "superAdmin",
+    },
+    {
+      fname: "Oreoluwa",
+      lname: "Smith",
+      email: "oreoluwasmith@gmail.com",
+      phone: "+2348133992314",
+      password: "jh0S2i__",
+      role: "superAdmin",
+    },
+  ];
+
+  for (const user of superAdminUsers) {
+    const existingUser = await User.findOne({ email: user.email });
+    if (!existingUser) {
+      const newUser = new User(user);
+      await newUser.save();
+    }
+  }
+  console.log("SuperAdmin users added successfully!");
+}
+
+addSuperAdmins().catch((err) => console.error(err));
+
 export default User;
