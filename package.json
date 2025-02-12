@@ -1,7 +1,7 @@
 {
   "name": "mainstackapi",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "src/app.js",
   "directories": {
     "test": "tests"
   },
